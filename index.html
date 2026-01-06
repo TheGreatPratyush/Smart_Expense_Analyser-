@@ -29,7 +29,6 @@
     </div>
   </section>
 
-
   <section class="card status-card" id="budgetStatusCard">
     <h3>This Month Overview</h3>
 
@@ -51,11 +50,11 @@
     <p id="statusMessage"></p>
   </section>
 
-
   <section class="card wide">
-    <h3 id="formTitle">Add / Edit Expense</h3>
+    <h3>Add Expense</h3>
     <form id="expenseForm" class="expense-form">
       <input type="number" id="amount" placeholder="Amount (₹)" required>
+
       <select id="category">
         <option>Food</option>
         <option>Travel</option>
@@ -63,15 +62,17 @@
         <option>Bills</option>
         <option>Other</option>
       </select>
+
       <input type="text" id="note" placeholder="Note (optional)">
+
       <div class="date-picker">
         <div id="dateDisplay">📅 Select date</div>
         <input type="date" id="date" hidden required>
       </div>
+
       <button type="submit">Save Expense</button>
     </form>
   </section>
-
 
   <section class="grid-2">
     <div class="card ledger">
