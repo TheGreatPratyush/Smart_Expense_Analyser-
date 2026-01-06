@@ -3,7 +3,7 @@ function safeSet(key, value) {
   try {
     localStorage.setItem(key, value);
   } catch {
-    alert("Storage not available on this browser");
+    alert("Storage blocked (iOS Private Mode?)");
   }
 }
 
@@ -57,11 +57,7 @@ quoteText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
 
 /* ========= DATE PICKER (UNIVERSAL) ========= */
 dateDisplay.addEventListener("click", () => {
-  if (dateInput.showPicker) {
-    dateInput.showPicker();
-  } else {
-    dateInput.focus();
-  }
+  dateInput.click();   // works on iOS / Android / Desktop
 });
 
 dateInput.addEventListener("change", () => {
@@ -75,13 +71,13 @@ dateInput.addEventListener("change", () => {
 
 /* ========= BUDGET ========= */
 saveBudgetBtn.addEventListener("click", () => {
-  if (budgetInput.value <= 0) return;
+  if (!budgetInput.value || budgetInput.value <= 0) return;
   budget = Number(budgetInput.value);
   safeSet("budget", JSON.stringify(budget));
   updateUI();
 });
 
-/* ========= EXPENSE ========= */
+/* ========= ADD EXPENSE ========= */
 expenseForm.addEventListener("submit", e => {
   e.preventDefault();
 
@@ -167,14 +163,14 @@ function updateUI() {
     row.innerHTML = `
       <div>${cat} – ₹${categoryTotals[cat]}</div>
       <div class="bar-track">
-        <div class="bar-fill" style="width:${(categoryTotals[cat] / maxVal) * 100}%"></div>
+        <div class="bar-fill" style="width:${(categoryTotals[cat]/maxVal)*100}%"></div>
       </div>
     `;
     barGraph.appendChild(row);
 
     const pie = document.createElement("div");
     pie.className = "pie";
-    pie.style.setProperty("--deg", `${(categoryTotals[cat] / total) * 360}deg`);
+    pie.style.setProperty("--deg", `${(categoryTotals[cat]/total)*360}deg`);
     pie.textContent = cat;
     pieWrapper.appendChild(pie);
   }

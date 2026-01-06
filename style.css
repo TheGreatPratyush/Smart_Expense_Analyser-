@@ -1,5 +1,4 @@
 :root {
-  --bg: #0b1320;
   --glass: rgba(255,255,255,0.12);
   --accent: #4fd1c5;
   --danger: #ff6b6b;
@@ -141,7 +140,6 @@ button {
   font-style: italic;
 }
 
-/* MOBILE */
 @media (max-width: 600px) {
   .card {
     padding: 20px;
