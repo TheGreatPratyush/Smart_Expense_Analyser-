@@ -1,22 +1,22 @@
-/* ========= SAFE STORAGE ========= */
+/* ================= SAFE STORAGE ================= */
 function safeSet(key, value) {
   try {
     localStorage.setItem(key, value);
-  } catch {
-    alert("Storage blocked (iOS Private Mode?)");
+  } catch (e) {
+    console.warn("Storage blocked (iOS Private Mode?)");
   }
 }
 
 function safeGet(key, fallback) {
   try {
-    const val = localStorage.getItem(key);
-    return val ? JSON.parse(val) : fallback;
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
   } catch {
     return fallback;
   }
 }
 
-/* ========= DOM ========= */
+/* ================= DOM ================= */
 const expenseForm = document.getElementById("expenseForm");
 const expenseList = document.getElementById("expenseList");
 
@@ -41,11 +41,11 @@ const dateDisplay = document.getElementById("dateDisplay");
 
 const quoteText = document.getElementById("quoteText");
 
-/* ========= DATA ========= */
+/* ================= DATA ================= */
 let expenses = safeGet("expenses", []);
 let budget = safeGet("budget", 0);
 
-/* ========= QUOTES ========= */
+/* ================= QUOTES ================= */
 const quotes = [
   "A budget is telling your money where to go.",
   "Small savings today create big security tomorrow.",
@@ -53,14 +53,25 @@ const quotes = [
   "Spend less than you earn — always.",
   "Financial discipline is freedom."
 ];
-quoteText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
 
-/* ========= DATE PICKER (UNIVERSAL) ========= */
+if (quoteText) {
+  quoteText.textContent =
+    quotes[Math.floor(Math.random() * quotes.length)];
+}
+
+/* ================= DATE PICKER (iOS SAFE) ================= */
+/*
+  IMPORTANT:
+  - input[type=date] MUST NOT be hidden
+  - iOS Safari only allows focus() from user gesture
+*/
 dateDisplay.addEventListener("click", () => {
-  dateInput.click();   // works on iOS / Android / Desktop
+  dateInput.focus();
 });
 
 dateInput.addEventListener("change", () => {
+  if (!dateInput.value) return;
+
   const d = new Date(dateInput.value);
   dateDisplay.textContent = d.toLocaleDateString("en-IN", {
     day: "2-digit",
@@ -69,25 +80,26 @@ dateInput.addEventListener("change", () => {
   });
 });
 
-/* ========= BUDGET ========= */
+/* ================= BUDGET ================= */
 saveBudgetBtn.addEventListener("click", () => {
   if (!budgetInput.value || budgetInput.value <= 0) return;
+
   budget = Number(budgetInput.value);
   safeSet("budget", JSON.stringify(budget));
   updateUI();
 });
 
-/* ========= ADD EXPENSE ========= */
+/* ================= ADD EXPENSE ================= */
 expenseForm.addEventListener("submit", e => {
   e.preventDefault();
 
   if (!amount.value || amount.value <= 0) {
-    alert("Enter valid amount");
+    alert("Enter a valid amount");
     return;
   }
 
   if (!dateInput.value) {
-    alert("Select date");
+    alert("Select a date");
     return;
   }
 
@@ -99,19 +111,21 @@ expenseForm.addEventListener("submit", e => {
   });
 
   safeSet("expenses", JSON.stringify(expenses));
+
   expenseForm.reset();
   dateDisplay.textContent = "📅 Select date";
+
   updateUI();
 });
 
-/* ========= UI ========= */
+/* ================= UI RENDER ================= */
 function updateUI() {
   expenseList.innerHTML = "";
   barGraph.innerHTML = "";
   pieWrapper.innerHTML = "";
 
   let total = 0;
-  let categoryTotals = {};
+  const categoryTotals = {};
 
   expenses.forEach(exp => {
     total += exp.amount;
@@ -120,18 +134,23 @@ function updateUI() {
 
     const li = document.createElement("li");
     li.innerHTML = `
-      <div class="exp-left">
+      <div>
         <strong>${exp.category}</strong>
-        <small>${exp.note || "No note"}</small>
+        <div style="font-size:12px;opacity:.7">
+          ${exp.note || "No note"}
+        </div>
       </div>
-      <div class="exp-right">
-        <div>₹${exp.amount}</div>
-        <small>${exp.date}</small>
+      <div style="text-align:right">
+        ₹${exp.amount}
+        <div style="font-size:12px;opacity:.7">
+          ${exp.date}
+        </div>
       </div>
     `;
     expenseList.appendChild(li);
   });
 
+  /* ----- Budget UI ----- */
   statusSpent.textContent = total;
   statusBudget.textContent = budget;
 
@@ -141,16 +160,20 @@ function updateUI() {
 
     if (total > budget) {
       budgetStatusCard.classList.add("exceeded");
-      statusMessage.textContent = `⚠ Budget exceeded by ₹${total - budget}`;
+      statusMessage.textContent =
+        `⚠ Budget exceeded by ₹${total - budget}`;
     } else if (total > budget * 0.8) {
-      statusMessage.textContent = "⚠ Near budget limit";
       budgetStatusCard.classList.remove("exceeded");
+      statusMessage.textContent =
+        "⚠ You are close to your budget limit";
     } else {
-      statusMessage.textContent = "✅ Budget under control";
       budgetStatusCard.classList.remove("exceeded");
+      statusMessage.textContent =
+        "✅ Budget is under control";
     }
   }
 
+  /* ----- Analytics ----- */
   if (expenses.length === 0) {
     barGraph.innerHTML = "<p>No data yet</p>";
     return;
@@ -158,22 +181,28 @@ function updateUI() {
 
   const maxVal = Math.max(...Object.values(categoryTotals));
 
-  for (let cat in categoryTotals) {
+  for (const cat in categoryTotals) {
     const row = document.createElement("div");
     row.innerHTML = `
       <div>${cat} – ₹${categoryTotals[cat]}</div>
       <div class="bar-track">
-        <div class="bar-fill" style="width:${(categoryTotals[cat]/maxVal)*100}%"></div>
+        <div class="bar-fill"
+             style="width:${(categoryTotals[cat] / maxVal) * 100}%">
+        </div>
       </div>
     `;
     barGraph.appendChild(row);
 
     const pie = document.createElement("div");
     pie.className = "pie";
-    pie.style.setProperty("--deg", `${(categoryTotals[cat]/total)*360}deg`);
+    pie.style.setProperty(
+      "--deg",
+      `${(categoryTotals[cat] / total) * 360}deg`
+    );
     pie.textContent = cat;
     pieWrapper.appendChild(pie);
   }
 }
 
+/* ================= INIT ================= */
 updateUI();

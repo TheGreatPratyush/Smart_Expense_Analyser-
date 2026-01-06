@@ -145,3 +145,13 @@ button {
     padding: 20px;
   }
 }
+/* iOS SAFARI SAFE DATE INPUT */
+.real-date {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+
+/* rest of your CSS can remain unchanged */
