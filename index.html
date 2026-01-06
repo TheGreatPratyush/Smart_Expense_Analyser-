@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Expense Analyzer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>Smart Expense Analyzer</h1>
+  <p>Your personal finance dashboard</p>
+</header>
+
+<main class="dashboard">
+
+  <section class="grid-2">
+    <div class="card highlight">
+      <h3>Monthly Budget</h3>
+      <input type="number" id="budgetInput" placeholder="Enter budget (₹)">
+      <button id="saveBudget">Save Budget</button>
+      <p id="budgetInfo"></p>
+    </div>
+
+    <div class="card quote-card">
+      <h3>💡 Finance Thought</h3>
+      <p id="quoteText"></p>
+    </div>
+  </section>
+
+
+  <section class="card status-card" id="budgetStatusCard">
+    <h3>This Month Overview</h3>
+
+    <div class="status-grid">
+      <div>
+        <span>Spent</span>
+        <strong>₹<span id="statusSpent">0</span></strong>
+      </div>
+      <div>
+        <span>Budget</span>
+        <strong>₹<span id="statusBudget">0</span></strong>
+      </div>
+    </div>
+
+    <div class="progress-track">
+      <div class="progress-fill" id="budgetProgress"></div>
+    </div>
+
+    <p id="statusMessage"></p>
+  </section>
+
+
+  <section class="card wide">
+    <h3 id="formTitle">Add / Edit Expense</h3>
+    <form id="expenseForm" class="expense-form">
+      <input type="number" id="amount" placeholder="Amount (₹)" required>
+      <select id="category">
+        <option>Food</option>
+        <option>Travel</option>
+        <option>Shopping</option>
+        <option>Bills</option>
+        <option>Other</option>
+      </select>
+      <input type="text" id="note" placeholder="Note (optional)">
+      <div class="date-picker">
+        <div id="dateDisplay">📅 Select date</div>
+        <input type="date" id="date" hidden required>
+      </div>
+      <button type="submit">Save Expense</button>
+    </form>
+  </section>
+
+
+  <section class="grid-2">
+    <div class="card ledger">
+      <h3 class="sticky-title">Expense History</h3>
+      <ul id="expenseList"></ul>
+    </div>
+
+    <div class="card">
+      <h3>Category Analytics</h3>
+      <div id="barGraph"></div>
+      <div id="pieWrapper"></div>
+    </div>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
