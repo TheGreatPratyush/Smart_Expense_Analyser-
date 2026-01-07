@@ -1,28 +1,11 @@
-/* ================= SAFE STORAGE ================= */
-function safeSet(key, value) {
-  try {
-    localStorage.setItem(key, value);
-  } catch (e) {
-    console.warn("Storage blocked (iOS Private Mode?)");
-  }
-}
-
-function safeGet(key, fallback) {
-  try {
-    const v = localStorage.getItem(key);
-    return v ? JSON.parse(v) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-/* ================= DOM ================= */
 const expenseForm = document.getElementById("expenseForm");
 const expenseList = document.getElementById("expenseList");
 
 const amount = document.getElementById("amount");
 const category = document.getElementById("category");
 const note = document.getElementById("note");
+const dateInput = document.getElementById("date");
+const dateDisplay = document.getElementById("dateDisplay");
 
 const budgetInput = document.getElementById("budgetInput");
 const saveBudgetBtn = document.getElementById("saveBudget");
@@ -35,17 +18,13 @@ const budgetStatusCard = document.getElementById("budgetStatusCard");
 
 const barGraph = document.getElementById("barGraph");
 const pieWrapper = document.getElementById("pieWrapper");
-
-const dateInput = document.getElementById("date");
-const dateDisplay = document.getElementById("dateDisplay");
-
 const quoteText = document.getElementById("quoteText");
 
-/* ================= DATA ================= */
-let expenses = safeGet("expenses", []);
-let budget = safeGet("budget", 0);
+let expenses = JSON.parse(localStorage.getItem("expenses")) || [];
+let budget = Number(localStorage.getItem("budget")) || 0;
+let editIndex = null;
 
-/* ================= QUOTES ================= */
+/* Quotes */
 const quotes = [
   "A budget is telling your money where to go.",
   "Small savings today create big security tomorrow.",
@@ -53,25 +32,10 @@ const quotes = [
   "Spend less than you earn — always.",
   "Financial discipline is freedom."
 ];
+quoteText.textContent = quotes[Math.floor(Math.random() * quotes.length)];
 
-if (quoteText) {
-  quoteText.textContent =
-    quotes[Math.floor(Math.random() * quotes.length)];
-}
-
-/* ================= DATE PICKER (iOS SAFE) ================= */
-/*
-  IMPORTANT:
-  - input[type=date] MUST NOT be hidden
-  - iOS Safari only allows focus() from user gesture
-*/
-dateDisplay.addEventListener("click", () => {
-  dateInput.focus();
-});
-
+/* Date display update */
 dateInput.addEventListener("change", () => {
-  if (!dateInput.value) return;
-
   const d = new Date(dateInput.value);
   dateDisplay.textContent = d.toLocaleDateString("en-IN", {
     day: "2-digit",
@@ -80,54 +44,66 @@ dateInput.addEventListener("change", () => {
   });
 });
 
-/* ================= BUDGET ================= */
+/* Budget */
 saveBudgetBtn.addEventListener("click", () => {
-  if (!budgetInput.value || budgetInput.value <= 0) return;
-
+  if (budgetInput.value <= 0) return;
   budget = Number(budgetInput.value);
-  safeSet("budget", JSON.stringify(budget));
+  localStorage.setItem("budget", budget);
   updateUI();
 });
 
-/* ================= ADD EXPENSE ================= */
+/* Add / Edit Expense */
 expenseForm.addEventListener("submit", e => {
   e.preventDefault();
+  if (!dateInput.value) return;
 
-  if (!amount.value || amount.value <= 0) {
-    alert("Enter a valid amount");
-    return;
-  }
-
-  if (!dateInput.value) {
-    alert("Select a date");
-    return;
-  }
-
-  expenses.push({
+  const expenseData = {
     amount: Number(amount.value),
     category: category.value,
-    note: note.value.trim(),
+    note: note.value,
     date: dateInput.value
-  });
+  };
 
-  safeSet("expenses", JSON.stringify(expenses));
+  if (editIndex !== null) {
+    expenses[editIndex] = expenseData;
+    editIndex = null;
+  } else {
+    expenses.push(expenseData);
+  }
 
+  localStorage.setItem("expenses", JSON.stringify(expenses));
   expenseForm.reset();
   dateDisplay.textContent = "📅 Select date";
-
   updateUI();
 });
 
-/* ================= UI RENDER ================= */
+/* Delete */
+function deleteExpense(index) {
+  expenses.splice(index, 1);
+  localStorage.setItem("expenses", JSON.stringify(expenses));
+  updateUI();
+}
+
+/* Edit */
+function editExpense(index) {
+  const exp = expenses[index];
+  amount.value = exp.amount;
+  category.value = exp.category;
+  note.value = exp.note;
+  dateInput.value = exp.date;
+  dateDisplay.textContent = exp.date;
+  editIndex = index;
+}
+
 function updateUI() {
   expenseList.innerHTML = "";
   barGraph.innerHTML = "";
   pieWrapper.innerHTML = "";
 
   let total = 0;
-  const categoryTotals = {};
+  let categoryTotals = {};
 
-  expenses.forEach(exp => {
+  expenses.forEach((exp, index) => {
     total += exp.amount;
     categoryTotals[exp.category] =
       (categoryTotals[exp.category] || 0) + exp.amount;
@@ -136,73 +112,49 @@ function updateUI() {
     li.innerHTML = `
       <div>
         <strong>${exp.category}</strong>
-        <div style="font-size:12px;opacity:.7">
-          ${exp.note || "No note"}
-        </div>
+        <small>${exp.note || "No note"}</small>
       </div>
       <div style="text-align:right">
         ₹${exp.amount}
-        <div style="font-size:12px;opacity:.7">
-          ${exp.date}
+        <small>${exp.date}</small>
+        <div class="exp-actions">
+          <button onclick="editExpense(${index})">Edit</button>
+          <button onclick="deleteExpense(${index})">Delete</button>
         </div>
       </div>
     `;
     expenseList.appendChild(li);
   });
 
-  /* ----- Budget UI ----- */
   statusSpent.textContent = total;
   statusBudget.textContent = budget;
 
   if (budget > 0) {
     const percent = Math.min((total / budget) * 100, 100);
     budgetProgress.style.width = percent + "%";
-
-    if (total > budget) {
-      budgetStatusCard.classList.add("exceeded");
-      statusMessage.textContent =
-        `⚠ Budget exceeded by ₹${total - budget}`;
-    } else if (total > budget * 0.8) {
-      budgetStatusCard.classList.remove("exceeded");
-      statusMessage.textContent =
-        "⚠ You are close to your budget limit";
-    } else {
-      budgetStatusCard.classList.remove("exceeded");
-      statusMessage.textContent =
-        "✅ Budget is under control";
-    }
+    statusMessage.textContent =
+      total > budget ? "⚠ Budget exceeded" : "✅ Budget under control";
   }
 
-  /* ----- Analytics ----- */
-  if (expenses.length === 0) {
-    barGraph.innerHTML = "<p>No data yet</p>";
-    return;
-  }
+  if (total === 0) return;
 
   const maxVal = Math.max(...Object.values(categoryTotals));
-
-  for (const cat in categoryTotals) {
+  for (let cat in categoryTotals) {
     const row = document.createElement("div");
     row.innerHTML = `
       <div>${cat} – ₹${categoryTotals[cat]}</div>
       <div class="bar-track">
-        <div class="bar-fill"
-             style="width:${(categoryTotals[cat] / maxVal) * 100}%">
-        </div>
+        <div class="bar-fill" style="width:${(categoryTotals[cat]/maxVal)*100}%"></div>
       </div>
     `;
     barGraph.appendChild(row);
 
     const pie = document.createElement("div");
     pie.className = "pie";
-    pie.style.setProperty(
-      "--deg",
-      `${(categoryTotals[cat] / total) * 360}deg`
-    );
+    pie.style.setProperty("--deg", `${(categoryTotals[cat]/total)*360}deg`);
     pie.textContent = cat;
     pieWrapper.appendChild(pie);
   }
 }
 
-/* ================= INIT ================= */
 updateUI();
