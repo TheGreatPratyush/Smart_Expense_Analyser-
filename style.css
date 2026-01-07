@@ -1,9 +1,5 @@
 :root {
-  --bg: #0b1320;
-  --card: rgba(255,255,255,0.08);
   --glass: rgba(255,255,255,0.12);
-  --accent: #4fd1c5;
-  --danger: #ff6b6b;
   --text: #e5e7eb;
 }
 
@@ -19,12 +15,12 @@ body {
 }
 
 .app-header {
-  padding: 40px 20px;
   text-align: center;
+  padding: 40px 20px;
 }
 
 .dashboard {
-  max-width: 1300px;
+  max-width: 1200px;
   margin: auto;
   padding: 20px;
   display: flex;
@@ -34,56 +30,87 @@ body {
 
 .grid-2 {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 30px;
 }
 
 .card {
   background: linear-gradient(180deg, var(--glass), transparent);
+  padding: 26px;
   border-radius: 22px;
-  padding: 28px;
-}
-
-.expense-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
 }
 
 input, select, button {
   padding: 14px;
   border-radius: 14px;
   border: none;
-  background: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.15);
   color: white;
 }
 
 button {
   background: linear-gradient(135deg, #4fd1c5, #38bdf8);
   font-weight: 600;
-}
-
-.date-picker {
-  position: relative;
-}
-
-#dateDisplay {
-  background: rgba(255,255,255,0.15);
-  padding: 14px;
-  border-radius: 14px;
-  text-align: center;
-}
-
-/* MOBILE / iOS SAFE DATE OVERLAY */
-.native-date {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
   cursor: pointer;
 }
 
+.expense-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+/* ===== DATE INPUT FIX ===== */
+.date-input::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  cursor: pointer;
+}
+
+.date-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(79,209,197,0.6);
+}
+
+/* ===== BUDGET PROGRESS ===== */
+.progress-track {
+  height: 14px;
+  background: rgba(255,255,255,0.25);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 14px;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  border-radius: 999px;
+  transition: width 0.8s ease, background 0.4s ease;
+}
+
+.progress-fill.warning {
+  background: linear-gradient(90deg, #facc15, #fb923c);
+}
+
+.progress-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 8px #ef4444; }
+  50% { box-shadow: 0 0 22px #ef4444; }
+  100% { box-shadow: 0 0 8px #ef4444; }
+}
+
+#statusMessage {
+  text-align: center;
+  font-weight: 600;
+  margin-top: 10px;
+}
+
 .ledger {
-  max-height: 460px;
+  max-height: 420px;
   overflow-y: auto;
 }
 
@@ -94,11 +121,11 @@ button {
 
 #expenseList li {
   background: rgba(255,255,255,0.1);
-  padding: 14px;
+  padding: 12px;
   border-radius: 14px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
-  margin-bottom: 12px;
 }
 
 .exp-actions {
@@ -110,23 +137,48 @@ button {
 .exp-actions button {
   font-size: 0.65rem;
   padding: 4px 8px;
-  border-radius: 6px;
   background: rgba(255,255,255,0.25);
+}
+/* ===== CATEGORY ANALYTICS ===== */
+
+#barGraph > div {
+  margin-bottom: 14px;
 }
 
 .bar-track {
-  background: rgba(255,255,255,0.2);
+  background: rgba(255,255,255,0.25);
   border-radius: 10px;
+  overflow: hidden;
+  margin-top: 6px;
 }
 
 .bar-fill {
   height: 18px;
+  border-radius: 10px;
   background: linear-gradient(90deg, #4fd1c5, #38bdf8);
+  animation: growBar 0.8s ease forwards;
+}
+
+@keyframes growBar {
+  from { width: 0%; }
+}
+
+#pieWrapper {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 18px;
 }
 
 .pie {
   width: 96px;
   height: 96px;
   border-radius: 50%;
-  background: conic-gradient(#4fd1c5 var(--deg), rgba(255,255,255,0.15) 0);
+  display: grid;
+  place-items: center;
+  font-size: 0.7rem;
+  background: conic-gradient(
+    #4fd1c5 var(--deg),
+    rgba(255,255,255,0.15) 0
+  );
 }

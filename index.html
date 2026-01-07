@@ -16,20 +16,19 @@
 <main class="dashboard">
 
   <section class="grid-2">
-    <div class="card highlight">
+    <div class="card">
       <h3>Monthly Budget</h3>
       <input type="number" id="budgetInput" placeholder="Enter budget (₹)">
       <button id="saveBudget">Save Budget</button>
-      <p id="budgetInfo"></p>
     </div>
 
-    <div class="card quote-card">
+    <div class="card">
       <h3>💡 Finance Thought</h3>
       <p id="quoteText"></p>
     </div>
   </section>
 
-  <section class="card status-card" id="budgetStatusCard">
+  <section class="card">
     <h3>This Month Overview</h3>
 
     <div class="status-grid">
@@ -50,7 +49,7 @@
     <p id="statusMessage"></p>
   </section>
 
-  <section class="card wide">
+  <section class="card">
     <h3>Add / Edit Expense</h3>
 
     <form id="expenseForm" class="expense-form">
@@ -66,11 +65,8 @@
 
       <input type="text" id="note" placeholder="Note (optional)">
 
-      <!-- SAME UI, mobile-safe -->
-      <div class="date-picker">
-        <div id="dateDisplay">📅 Select date</div>
-        <input type="date" id="date" required class="native-date">
-      </div>
+      <!-- SAFE DATE PICKER -->
+      <input type="date" id="date" class="date-input" required>
 
       <button type="submit">Save Expense</button>
     </form>
@@ -78,7 +74,7 @@
 
   <section class="grid-2">
     <div class="card ledger">
-      <h3 class="sticky-title">Expense History</h3>
+      <h3>Expense History</h3>
       <ul id="expenseList"></ul>
     </div>
 
